@@ -1,0 +1,14 @@
+# Unified Dependencies for SAHAYAK Team Project
+# Covers Persona & Evaluation (Utham), Tool Integration (Jackson), and Multimodal Memory (Joe)
+
+# Core LLM APIs
+google-generativeai>=0.8.0
+anthropic>=0.40.0
+requests>=2.31.0
+urllib3>=2.0.0
+python-dotenv>=1.0.0
+
+# Document & Image Processing (Multimodal / Memory)
+pillow>=10.0.0
+reportlab>=4.0.0
+pypdf>=4.0.0

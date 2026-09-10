@@ -18,6 +18,7 @@ load_dotenv(dotenv_path=env_path)
 from weather_tool import get_weather
 from schedule_tool import calculate_study_schedule
 from search_tool import search_topic_summary
+from gemini_tool_engine import GeminiClient, run_gemini_turn, anthropic_to_gemini_schema
 
 # Teammate Uttam's exact system prompt (DO NOT MODIFY)
 SYSTEM_PROMPT = """You are "Sahayak," an AI study and wellness companion for students.
@@ -310,6 +311,19 @@ def run_mock_turn(user_prompt: str) -> Tuple[str, List[Dict[str, Any]]]:
         return "Hello! I'm Sahayak, your study and wellness companion. What are you studying for today?", []
 
 
+def get_llm_provider():
+    """Detects whether Gemini or Claude is configured, prioritizing Gemini."""
+    gemini_client = GeminiClient()
+    if gemini_client.is_configured():
+        return "gemini", gemini_client
+    
+    anthropic_client = get_anthropic_client()
+    if anthropic_client:
+        return "anthropic", anthropic_client
+
+    return "mock", None
+
+
 def run_test_suite():
     """Runs the 4 required test cases and prints execution logs."""
     test_prompts = [
@@ -319,24 +333,48 @@ def run_test_suite():
         "What is the weather right now in XyzzyNonExistentLand99999, and can I take a break outside?"
     ]
 
-    client = get_anthropic_client()
-    model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
+    provider, client = get_llm_provider()
+    tools_schema = load_tools_schema()
 
     print("\n" + "="*80)
     print("SAHAYAK TOOL INTEGRATION - TEST SUITE RUNNER")
-    print(f"Mode: {'LIVE ANTHROPIC API (' + model + ')' if client else 'OFFLINE SIMULATION / MOCK RUNNER'}")
-    if not client:
-        print("Notice: ANTHROPIC_API_KEY is not set or using placeholder in .env. Running mock simulation.")
+    if provider == "gemini":
+        print(f"Mode: LIVE GOOGLE GEMINI API ({client.model})")
+    elif provider == "anthropic":
+        model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
+        print(f"Mode: LIVE ANTHROPIC API ({model})")
+    else:
+        print("Mode: OFFLINE SIMULATION / MOCK RUNNER")
+        print("Notice: No live API key configured. Running deterministic simulation.")
     print("="*80 + "\n")
 
     for idx, prompt in enumerate(test_prompts, 1):
         print(f"\n--- TEST CASE {idx} ---")
         print(f"Prompt: {prompt}")
-        if client:
+        tool_calls = []
+
+        if provider == "gemini":
             try:
-                final_text, history, tool_calls = run_conversation_turn(prompt, client=client, model=model)
+                final_text, _, tool_calls = run_gemini_turn(
+                    user_prompt=prompt,
+                    system_prompt=SYSTEM_PROMPT,
+                    tool_dispatch=TOOL_DISPATCH,
+                    anthropic_tools_schema=tools_schema,
+                    gemini_client=client
+                )
+                if "Error from Gemini" in final_text:
+                    print(f"[Warning] {final_text}")
+                    print("Falling back to simulation runner...")
+                    final_text, tool_calls = run_mock_turn(prompt)
             except Exception as e:
-                print(f"Error during API call: {e}")
+                print(f"Error during Gemini call: {e}")
+                final_text, tool_calls = run_mock_turn(prompt)
+        elif provider == "anthropic":
+            try:
+                model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
+                final_text, _, tool_calls = run_conversation_turn(prompt, client=client, model=model)
+            except Exception as e:
+                print(f"Error during Anthropic call: {e}")
                 final_text, tool_calls = run_mock_turn(prompt)
         else:
             final_text, tool_calls = run_mock_turn(prompt)
@@ -352,13 +390,19 @@ def run_test_suite():
 
 def interactive_mode():
     """Starts interactive chat mode with Sahayak."""
-    client = get_anthropic_client()
-    model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
+    provider, client = get_llm_provider()
+    tools_schema = load_tools_schema()
     history = []
 
     print("\n" + "="*60)
     print("  SAHAYAK - AI Study & Wellness Companion")
-    print(f"  Mode: {'Live API (' + model + ')' if client else 'Offline Simulation'}")
+    if provider == "gemini":
+        print(f"  Mode: Live Google Gemini API ({client.model})")
+    elif provider == "anthropic":
+        model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
+        print(f"  Mode: Live Anthropic Claude API ({model})")
+    else:
+        print("  Mode: Offline Simulation")
     print("  Type 'quit' or 'exit' to end session.")
     print("="*60)
     print("\nSahayak: Hello! I'm Sahayak, your study and wellness companion. What are you studying for today?\n")
@@ -372,15 +416,25 @@ def interactive_mode():
                 print("\nSahayak: Take care and best of luck with your studies!\n")
                 break
 
-            if client:
-                final_text, history, tool_calls = run_conversation_turn(
+            if provider == "gemini":
+                final_text, history, _ = run_gemini_turn(
+                    user_prompt=user_input,
+                    system_prompt=SYSTEM_PROMPT,
+                    tool_dispatch=TOOL_DISPATCH,
+                    anthropic_tools_schema=tools_schema,
+                    gemini_client=client,
+                    conversation_contents=history
+                )
+            elif provider == "anthropic":
+                model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
+                final_text, history, _ = run_conversation_turn(
                     user_input,
                     conversation_history=history,
                     client=client,
                     model=model
                 )
             else:
-                final_text, tool_calls = run_mock_turn(user_input)
+                final_text, _ = run_mock_turn(user_input)
 
             print(f"\nSahayak: {final_text}\n")
 
