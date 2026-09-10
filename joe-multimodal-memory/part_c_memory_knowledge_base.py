@@ -26,11 +26,15 @@ Usage:
 """
 
 import os
+import sys
 import json
 import time
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 # ── Environment ──────────────────────────────────────────────────────────────
 env_path = Path(__file__).parent / ".env"
