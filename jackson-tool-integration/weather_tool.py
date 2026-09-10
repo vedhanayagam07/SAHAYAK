@@ -49,7 +49,12 @@ def get_weather(location: str) -> Dict[str, Any]:
     }
 
     try:
-        response = requests.get(base_url, params=params, timeout=10)
+        try:
+            response = requests.get(base_url, params=params, timeout=10)
+        except requests.exceptions.SSLError:
+            import urllib3
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+            response = requests.get(base_url, params=params, timeout=10, verify=False)
         
         if response.status_code == 404:
             return {
