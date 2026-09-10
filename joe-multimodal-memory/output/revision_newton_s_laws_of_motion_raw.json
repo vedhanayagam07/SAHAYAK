@@ -1,0 +1,65 @@
+{
+  "topic": "Newton's Laws of Motion",
+  "subtitle": "The three fundamental laws governing motion and force",
+  "color_theme": "blue",
+  "key_definition": "Newton's Laws of Motion describe the relationship between the motion of an object and the forces acting on it, forming the foundation of classical mechanics. [Source: Britannica]",
+  "sections": [
+    {
+      "heading": "Law 1 -- Inertia",
+      "icon": "🛑",
+      "points": [
+        "An object at rest stays at rest",
+        "An object in motion stays in motion",
+        "Unless acted upon by a net external force",
+        "Examples: seat belts, sliding on ice"
+      ]
+    },
+    {
+      "heading": "Law 2 -- Force & Acceleration",
+      "icon": "⚡",
+      "points": [
+        "F = ma (Force = mass × acceleration)",
+        "Larger force -> greater acceleration",
+        "Larger mass -> less acceleration for same force",
+        "Direction of acceleration = direction of net force"
+      ]
+    },
+    {
+      "heading": "Law 3 -- Action & Reaction",
+      "icon": "↔️",
+      "points": [
+        "Every action has an equal and opposite reaction",
+        "Forces always occur in pairs",
+        "Examples: rocket propulsion, swimming strokes",
+        "Reaction force acts on a DIFFERENT object"
+      ]
+    },
+    {
+      "heading": "Key Applications",
+      "icon": "🚀",
+      "points": [
+        "Projectile motion calculations",
+        "Vehicle braking distances (Law 1 + 2)",
+        "Rocket launches (Law 3)",
+        "Friction problems (net force analysis)"
+      ]
+    }
+  ],
+  "mnemonic": "I Feel Amazing -- Inertia, Force=ma, Action-reaction",
+  "quick_quiz": [
+    {
+      "q": "What is the formula for Newton's Second Law?",
+      "a": "F = ma"
+    },
+    {
+      "q": "Why do passengers lurch forward when a bus brakes?",
+      "a": "Inertia (Law 1) -- body continues in motion"
+    }
+  ],
+  "source_citations": [
+    "Britannica",
+    "Khan Academy Physics",
+    "Serway & Jewett -- Physics for Scientists and Engineers"
+  ],
+  "exam_tip": "Always draw a free-body diagram before applying F=ma -- identify ALL forces (gravity, normal, friction, applied) before computing net force."
+}

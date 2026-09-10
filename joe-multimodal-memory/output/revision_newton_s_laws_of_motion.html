@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Revision -- Newton's Laws of Motion | SAHAYAK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f4f8;
+      color: #1C2833;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ── Page wrapper ── */
+    .page {
+      max-width: 210mm;
+      margin: 0 auto;
+      background: white;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #1A5276 0%, #2E86C1 100%);
+      color: white;
+      padding: 28px 36px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      right: -40px; top: -40px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+    }
+    .sahayak-badge {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 20px;
+      display: inline-block;
+      padding: 3px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+    .header p.subtitle {
+      font-size: 14px;
+      opacity: 0.85;
+      font-weight: 400;
+    }
+
+    /* ── Key Definition ── */
+    .key-definition {
+      background: #EBF5FB;
+      border-left: 5px solid #2E86C1;
+      margin: 0 36px 0;
+      padding: 16px 20px;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: #1A5276;
+      font-weight: 500;
+    }
+
+    /* ── Content area ── */
+    .content {
+      padding: 20px 36px;
+    }
+
+    /* ── Section grid ── */
+    .sections-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: #EBF5FB;
+      border-radius: 10px;
+      padding: 16px;
+      border: 1px solid #AED6F1;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #AED6F1;
+      padding-bottom: 8px;
+    }
+    .card-icon {
+      font-size: 20px;
+    }
+    .card h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1A5276;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .card ul li {
+      font-size: 12.5px;
+      line-height: 1.6;
+      padding: 2px 0 2px 16px;
+      position: relative;
+      color: #2C3E50;
+    }
+    .card ul li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: #2E86C1;
+      font-weight: bold;
+    }
+
+    /* ── Bottom row ── */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    /* ── Mnemonic ── */
+    .mnemonic-box {
+      background: linear-gradient(135deg, #1A527618, #2E86C128);
+      border: 2px dashed #2E86C1;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .mnemonic-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #1A5276;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .mnemonic-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1A5276;
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    /* ── Quick Quiz ── */
+    .quiz-box {
+      background: #FDFEFE;
+      border: 1px solid #AED6F1;
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .quiz-box h4 {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #1A5276;
+      margin-bottom: 10px;
+    }
+    .quiz-item {
+      margin-bottom: 10px;
+    }
+    .quiz-q {
+      font-size: 12px;
+      font-weight: 600;
+      color: #2C3E50;
+      margin-bottom: 3px;
+    }
+    .quiz-a {
+      font-size: 12px;
+      color: #1E8449;
+      padding-left: 12px;
+    }
+
+    /* ── Exam Tip ── */
+    .exam-tip {
+      background: #FEF9E7;
+      border: 2px solid #F39C12;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+    }
+    .exam-tip-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #A04000;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .exam-tip p {
+      font-size: 12.5px;
+      color: #784212;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      background: #1A5276;
+      color: rgba(255,255,255,0.7);
+      padding: 12px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+    }
+    .footer .sources { font-style: italic; }
+    .footer .meta { text-align: right; }
+
+    /* ── Print ── */
+    @page {
+      size: A4;
+      margin: 8mm;
+    }
+    @media print {
+      body { background: white; }
+      .page { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="sahayak-badge">📚 SAHAYAK Revision Card</div>
+    <h1>Newton's Laws of Motion</h1>
+    <p class="subtitle">The three fundamental laws governing motion and force</p>
+  </div>
+
+  <!-- Key Definition -->
+  <div class="key-definition">
+    📖 <strong>Definition:</strong> Newton's Laws of Motion describe the relationship between the motion of an object and the forces acting on it, forming the foundation of classical mechanics. [Source: Britannica]
+  </div>
+
+  <!-- Main Content -->
+  <div class="content">
+
+    <!-- Section Cards -->
+    <div class="sections-grid">
+      
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🛑</span>
+            <h3>Law 1 -- Inertia</h3>
+          </div>
+          <ul><li>An object at rest stays at rest</li><li>An object in motion stays in motion</li><li>Unless acted upon by a net external force</li><li>Examples: seat belts, sliding on ice</li></ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">⚡</span>
+            <h3>Law 2 -- Force & Acceleration</h3>
+          </div>
+          <ul><li>F = ma (Force = mass × acceleration)</li><li>Larger force -> greater acceleration</li><li>Larger mass -> less acceleration for same force</li><li>Direction of acceleration = direction of net force</li></ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">↔️</span>
+            <h3>Law 3 -- Action & Reaction</h3>
+          </div>
+          <ul><li>Every action has an equal and opposite reaction</li><li>Forces always occur in pairs</li><li>Examples: rocket propulsion, swimming strokes</li><li>Reaction force acts on a DIFFERENT object</li></ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🚀</span>
+            <h3>Key Applications</h3>
+          </div>
+          <ul><li>Projectile motion calculations</li><li>Vehicle braking distances (Law 1 + 2)</li><li>Rocket launches (Law 3)</li><li>Friction problems (net force analysis)</li></ul>
+        </div>
+    </div>
+
+    <!-- Bottom Row: Mnemonic + Quiz -->
+    <div class="bottom-row">
+      
+      <div class="mnemonic-box">
+        <span class="mnemonic-label">🧠 Memory Trick</span>
+        <p class="mnemonic-text">"I Feel Amazing -- Inertia, Force=ma, Action-reaction"</p>
+      </div>
+      <div class="quiz-box">
+        <h4>⚡ Quick Self-Quiz</h4>
+        
+        <div class="quiz-item">
+          <div class="quiz-q">❓ What is the formula for Newton's Second Law?</div>
+          <div class="quiz-a">[PASS] F = ma</div>
+        </div>
+        <div class="quiz-item">
+          <div class="quiz-q">❓ Why do passengers lurch forward when a bus brakes?</div>
+          <div class="quiz-a">[PASS] Inertia (Law 1) -- body continues in motion</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exam Tip -->
+    <div class="exam-tip">
+      <span class="exam-tip-label">🎯 Exam Tip</span>
+      <p>Always draw a free-body diagram before applying F=ma -- identify ALL forces (gravity, normal, friction, applied) before computing net force.</p>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="sources">📚 Sources: <em>Britannica</em> &nbsp;|&nbsp; <em>Khan Academy Physics</em> &nbsp;|&nbsp; <em>Serway & Jewett -- Physics for Scientists and Engineers</em></div>
+    <div class="meta">Generated by SAHAYAK · claude-3-5-sonnet-20241022 [MOCK] · 2026-09-10</div>
+  </div>
+
+</div>
+</body>
+</html>
