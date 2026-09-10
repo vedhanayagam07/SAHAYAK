@@ -292,19 +292,35 @@ def run_mock_turn(user_prompt: str) -> Tuple[str, List[Dict[str, Any]]]:
         )
         return final_answer, recorded_calls
 
-    # Case 4: Nonsense weather location
-    elif "weather" in lower_prompt or "fake" in lower_prompt or "asdfghjkl" in lower_prompt or "atlantis" in lower_prompt:
-        loc = "Atlantis_FakeCity_123"
-        print(f"[Simulated Claude]: Calling 'get_weather' for '{loc}' without hallucinating.")
+    # Case 4 & General Weather: extract city or handle fake location
+    elif "weather" in lower_prompt or "outside" in lower_prompt:
+        import re
+        if any(term in lower_prompt for term in ["fake", "xyzzy", "nonexistent", "atlantis", "asdfghjkl"]):
+            loc = "Atlantis_FakeCity_123"
+        else:
+            match = re.search(r'\bin\s+([A-Za-z\s]+?)(?:\?|\.|\,|$|\bcheck\b|\btoday\b|\band\b)', user_prompt, re.IGNORECASE)
+            loc = match.group(1).strip() if match else "Mumbai"
+        
+        print(f"[Simulated Agent]: Calling 'get_weather' for '{loc}'")
         w_input = {"location": loc}
         w_res = execute_tool("get_weather", w_input)
         recorded_calls.append({"tool_name": "get_weather", "tool_input": w_input, "tool_result": w_res})
-        
-        final_answer = (
-            f"I checked the weather using `get_weather` for '{loc}', but the weather service returned an error: "
-            f"{w_res.get('error', 'Location not found')}. I cannot determine outdoor conditions for an unrecognized location. "
-            f"Please share a valid city name!"
-        )
+
+        if w_res.get("status") == "success":
+            temp = w_res.get("temperature_celsius")
+            cond = w_res.get("description", w_res.get("condition"))
+            good = w_res.get("good_for_outdoor_break")
+            reason = w_res.get("outdoor_break_reason")
+            final_answer = (
+                f"I checked the current weather for **{loc}** using `get_weather`: it is currently {temp}°C with {cond}. "
+                f"**Outdoor study break suitability: {good.upper()}**. {reason} "
+                f"Remember to study in focused 25-minute Pomodoro blocks and step outside for fresh air when ready!"
+            )
+        else:
+            final_answer = (
+                f"I checked the weather using `get_weather` for '{loc}', but the weather service returned an error: "
+                f"{w_res.get('error', 'Location not found')}. I cannot determine outdoor conditions. Please share a valid city name!"
+            )
         return final_answer, recorded_calls
 
     else:
