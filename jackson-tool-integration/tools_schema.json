@@ -1,0 +1,55 @@
+[
+  {
+    "name": "get_weather",
+    "description": "Retrieves the current weather for a specified location, including temperature, conditions, and an evaluation of whether it is suitable for an outdoor study break. Sahayak uses this to recommend whether a student should take their study break outside.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "string",
+          "description": "The city or locality name, e.g., 'Bangalore', 'Mumbai', 'London'"
+        }
+      },
+      "required": ["location"]
+    }
+  },
+  {
+    "name": "calculate_study_schedule",
+    "description": "Calculates a structured day-by-day study schedule given an exam date, available daily study hours, and a list of topics to cover. Computes remaining days and distributes topics evenly.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "exam_date": {
+          "type": "string",
+          "description": "The date of the exam in YYYY-MM-DD format (e.g., '2026-09-15')"
+        },
+        "hours_per_day": {
+          "type": "number",
+          "description": "Daily study hours available (must be greater than 0)"
+        },
+        "topics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of topics or chapters to cover before the exam"
+        }
+      },
+      "required": ["exam_date", "hours_per_day", "topics"]
+    }
+  },
+  {
+    "name": "search_topic_summary",
+    "description": "Searches for an academic or subject topic on Wikipedia to get an authoritative brief summary and reference URL. Used for grounding factual explanations.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "topic": {
+          "type": "string",
+          "description": "The concept, topic, or subject name to search (e.g., 'Newton's laws of motion', 'Photosynthesis')"
+        }
+      },
+      "required": ["topic"]
+    }
+  }
+]
