@@ -270,16 +270,50 @@ def run_mock_turn(user_prompt: str) -> Tuple[str, List[Dict[str, Any]]]:
 
     # Case 2: Newton's laws of motion
     elif "newton" in lower_prompt:
-        print("[Simulated Claude]: Decided to call 'search_topic_summary'")
+        print("[Simulated Agent]: Calling 'search_topic_summary' for Newton's laws of motion")
         search_input = {"topic": "Newton's laws of motion"}
         search_res = execute_tool("search_topic_summary", search_input)
         recorded_calls.append({"tool_name": "search_topic_summary", "tool_input": search_input, "tool_result": search_res})
         
         final_answer = (
-            f"Hello! What are you studying for today? Here is a quick summary of Newton's laws of motion using `search_topic_summary`: "
-            f"{search_res.get('summary', '')[:200]}... (Source: Wikipedia). "
-            f"Would you like an active-recall flashcard on this?"
+            "Here is a complete breakdown of **Newton's Three Laws of Motion** to help you master the concept:\n\n"
+            "1. **First Law (Law of Inertia)**:\n"
+            "   An object remains at rest or in uniform straight-line motion unless acted upon by a net external force. "
+            "*(Example: When a bus suddenly brakes, you lurch forward because your body maintains its forward velocity.)*\n\n"
+            "2. **Second Law (Law of Acceleration — $F = ma$)**:\n"
+            "   The net force acting on an object equals its mass multiplied by its acceleration. "
+            "*(Greater mass requires more force to accelerate; direction of acceleration equals the net force direction.)*\n\n"
+            "3. **Third Law (Action and Reaction)**:\n"
+            "   Whenever one body exerts a force on another, the second body exerts an equal and opposite force on the first. "
+            "*(Key note: Action and reaction forces act on **different** bodies, so they never cancel each other out! Example: Rocket propulsion.)*\n\n"
+            "*(Source: Wikipedia & Classical Mechanics)*\n\n"
+            "💡 **Active Recall Check**: Can you tell me which law explains why a swimmer pushes water backward to move forward?"
         )
+        return final_answer, recorded_calls
+
+    # General Academic Search (e.g., Photosynthesis, Calculus, Gravity)
+    elif any(k in lower_prompt for k in ["teach me", "explain", "what is", "summary of", "tell me about"]):
+        import re
+        topic_match = re.search(r'(?:teach me|explain|what is|summary of|tell me about)\s+([A-Za-z0-9\s\'-]+?)(?:\?|\.|$)', user_prompt, re.IGNORECASE)
+        topic = topic_match.group(1).strip() if topic_match else "Photosynthesis"
+        print(f"[Simulated Agent]: Calling 'search_topic_summary' for '{topic}'")
+        search_input = {"topic": topic}
+        search_res = execute_tool("search_topic_summary", search_input)
+        recorded_calls.append({"tool_name": "search_topic_summary", "tool_input": search_input, "tool_result": search_res})
+
+        if search_res.get("status") == "success":
+            extract = search_res.get("summary", "")
+            final_answer = (
+                f"Here is a study breakdown for **{search_res.get('title', topic)}** retrieved using `search_topic_summary`:\n\n"
+                f"{extract}\n\n"
+                f"*(Source: Wikipedia — {search_res.get('source_url')})*\n\n"
+                f"💡 **Active Recall**: Try summarizing the core takeaway of {topic} in your own words without checking notes!"
+            )
+        else:
+            final_answer = (
+                f"I searched Wikipedia for '{topic}' using `search_topic_summary`, but couldn't find an exact match: "
+                f"{search_res.get('error')}. Try checking the spelling or specifying a broader topic!"
+            )
         return final_answer, recorded_calls
 
     # Case 3: Ambiguous prompt "just make me a plan"
