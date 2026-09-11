@@ -6,9 +6,13 @@ Coordinates Claude API (/v1/messages) with tool execution (weather, study schedu
 import os
 import sys
 import json
+import re
 from pathlib import Path
 from typing import List, Dict, Any, Tuple
 from dotenv import load_dotenv
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 # Load environment variables from local .env if present
 env_path = Path(__file__).parent / ".env"
@@ -239,12 +243,14 @@ def run_mock_turn(user_prompt: str) -> Tuple[str, List[Dict[str, Any]]]:
     print("\n--- Running Mock Tool Calling Simulation ---")
     print(f"User Prompt: {user_prompt}")
 
-    # Case 1: Exam in 5 days, bangalore weather, outdoor break
-    if "maths" in lower_prompt or "exam" in lower_prompt and "bangalore" in lower_prompt:
-        print("[Simulated Claude]: Decided to call 'calculate_study_schedule' AND 'get_weather'")
+    # Case 1: Exam schedule + weather dual call
+    if ("maths" in lower_prompt or "exam" in lower_prompt) and ("bangalore" in lower_prompt or "weather" in lower_prompt or "outside" in lower_prompt):
+        print("[Simulated Agent]: Decided to call 'calculate_study_schedule' AND 'get_weather'")
         
         # Tool 1: get_weather
-        w_input = {"location": "Bangalore"}
+        loc_match = re.search(r'\bin\s+([A-Za-z\s]+?)(?:\?|\.|\,|$|\bcheck\b|\btoday\b|\band\b)', user_prompt, re.IGNORECASE)
+        loc = loc_match.group(1).strip() if loc_match else "Bangalore"
+        w_input = {"location": loc}
         w_res = execute_tool("get_weather", w_input)
         recorded_calls.append({"tool_name": "get_weather", "tool_input": w_input, "tool_result": w_res})
         
@@ -259,13 +265,63 @@ def run_mock_turn(user_prompt: str) -> Tuple[str, List[Dict[str, Any]]]:
         s_res = execute_tool("calculate_study_schedule", s_input)
         recorded_calls.append({"tool_name": "calculate_study_schedule", "tool_input": s_input, "tool_result": s_res})
 
+        temp_str = f"{w_res.get('temperature_celsius', '28')}°C ({w_res.get('description', 'clear skies')})"
+        good_str = w_res.get('good_for_outdoor_break', 'yes')
+        reason_str = w_res.get('outdoor_break_reason', 'Great for fresh air between study sessions!')
+
         final_answer = (
             f"Hello! I'm Sahayak, your study companion! For your maths exam in 5 days studying 2 hours/day, "
-            f"I used `calculate_study_schedule` to build a 5-day plan across your topics. "
-            f"I also checked `get_weather` for Bangalore: it is {w_res.get('temperature_celsius', '24')}°C ({w_res.get('condition', 'Clear')}). "
-            f"Outdoor break suitability: {w_res.get('good_for_outdoor_break', 'yes')}. {w_res.get('outdoor_break_reason', '')} "
-            f"Remember to use 25-minute Pomodoro sessions and take fresh air breaks!"
+            f"I used `calculate_study_schedule` to build an optimal 5-day plan across your topics.\n\n"
+            f"I also checked `get_weather` for **{loc}**: it is currently {temp_str}. "
+            f"**Outdoor break suitability: {good_str.upper()}**. {reason_str}\n\n"
+            f"Remember to use 25-minute Pomodoro sessions and take short fresh air breaks!"
         )
+        return final_answer, recorded_calls
+
+    # Case 3: Ambiguous prompt "just make me a plan" (Rule 3 Enforcement)
+    elif "just make me a plan" in lower_prompt or "make me a plan" in lower_prompt:
+        print("[Simulated Agent]: Enforcing RULE 3 - No tool call; asking clarifying questions.")
+        final_answer = (
+            "Hi there! I'd love to help you build a personalized study schedule! "
+            "To make sure it works best for you, could you let me know:\n"
+            "1) What **subject or topics** are you preparing for?\n"
+            "2) What is your exact **exam date** (YYYY-MM-DD)?\n"
+            "3) How many **hours per day** can you realistically dedicate to studying?\n\n"
+            "Once you share those details, I'll calculate a balanced day-by-day plan using spaced repetition blocks!"
+        )
+        return final_answer, recorded_calls
+
+    # Case 4 & Weather Queries: extract city or handle fake/nonsense location
+    elif "weather" in lower_prompt or "outside" in lower_prompt or "temperature" in lower_prompt or "xyzzy" in lower_prompt or "nonexistent" in lower_prompt:
+        # Check for fake/nonsense prompts
+        if any(term in lower_prompt for term in ["fake", "xyzzy", "nonexistent", "atlantis", "asdfghjkl"]):
+            match_fake = re.search(r'\bin\s+([A-Za-z0-9_]+)', user_prompt, re.IGNORECASE)
+            loc = match_fake.group(1).strip() if match_fake else "XyzzyNonExistentLand99999"
+        else:
+            match = re.search(r'\bin\s+([A-Za-z\s]+?)(?:\?|\.|\,|$|\bcheck\b|\btoday\b|\band\b)', user_prompt, re.IGNORECASE)
+            loc = match.group(1).strip() if match else "Mumbai"
+
+        print(f"[Simulated Agent]: Calling 'get_weather' for '{loc}'")
+        w_input = {"location": loc}
+        w_res = execute_tool("get_weather", w_input)
+        recorded_calls.append({"tool_name": "get_weather", "tool_input": w_input, "tool_result": w_res})
+
+        if w_res.get("status") == "success":
+            temp = w_res.get("temperature_celsius")
+            cond = w_res.get("description", w_res.get("condition"))
+            good = w_res.get("good_for_outdoor_break")
+            reason = w_res.get("outdoor_break_reason")
+            final_answer = (
+                f"I checked the current weather for **{loc}** using `get_weather`: it is currently {temp}°C with {cond}. "
+                f"**Outdoor study break suitability: {good.upper()}**. {reason} "
+                f"Remember to study in focused 25-minute Pomodoro blocks and step outside for fresh air when ready!"
+            )
+        else:
+            final_answer = (
+                f"I checked the weather using `get_weather` for '{loc}', but the weather service returned an error: "
+                f"{w_res.get('error', 'Location not found')}. I cannot determine outdoor conditions for an unrecognized location. "
+                f"Please provide a valid city name!"
+            )
         return final_answer, recorded_calls
 
     # Case 2: Newton's laws of motion
@@ -293,7 +349,6 @@ def run_mock_turn(user_prompt: str) -> Tuple[str, List[Dict[str, Any]]]:
 
     # General Academic Search (e.g., Photosynthesis, Calculus, Gravity)
     elif any(k in lower_prompt for k in ["teach me", "explain", "what is", "summary of", "tell me about"]):
-        import re
         topic_match = re.search(r'(?:teach me|explain|what is|summary of|tell me about)\s+([A-Za-z0-9\s\'-]+?)(?:\?|\.|$)', user_prompt, re.IGNORECASE)
         topic = topic_match.group(1).strip() if topic_match else "Photosynthesis"
         print(f"[Simulated Agent]: Calling 'search_topic_summary' for '{topic}'")
@@ -313,47 +368,6 @@ def run_mock_turn(user_prompt: str) -> Tuple[str, List[Dict[str, Any]]]:
             final_answer = (
                 f"I searched Wikipedia for '{topic}' using `search_topic_summary`, but couldn't find an exact match: "
                 f"{search_res.get('error')}. Try checking the spelling or specifying a broader topic!"
-            )
-        return final_answer, recorded_calls
-
-    # Case 3: Ambiguous prompt "just make me a plan"
-    elif "just make me a plan" in lower_prompt or "make me a plan" in lower_prompt:
-        print("[Simulated Claude]: Enforcing RULE 3 - No tool call; asking clarifying questions.")
-        final_answer = (
-            "Hi there! I'd love to help you build a study schedule! To make sure it works best for you, "
-            "could you let me know: 1) What subject are you preparing for? 2) What is your exact exam date? "
-            "and 3) How many hours per day can you realistically dedicate to studying?"
-        )
-        return final_answer, recorded_calls
-
-    # Case 4 & General Weather: extract city or handle fake location
-    elif "weather" in lower_prompt or "outside" in lower_prompt:
-        import re
-        if any(term in lower_prompt for term in ["fake", "xyzzy", "nonexistent", "atlantis", "asdfghjkl"]):
-            loc = "Atlantis_FakeCity_123"
-        else:
-            match = re.search(r'\bin\s+([A-Za-z\s]+?)(?:\?|\.|\,|$|\bcheck\b|\btoday\b|\band\b)', user_prompt, re.IGNORECASE)
-            loc = match.group(1).strip() if match else "Mumbai"
-        
-        print(f"[Simulated Agent]: Calling 'get_weather' for '{loc}'")
-        w_input = {"location": loc}
-        w_res = execute_tool("get_weather", w_input)
-        recorded_calls.append({"tool_name": "get_weather", "tool_input": w_input, "tool_result": w_res})
-
-        if w_res.get("status") == "success":
-            temp = w_res.get("temperature_celsius")
-            cond = w_res.get("description", w_res.get("condition"))
-            good = w_res.get("good_for_outdoor_break")
-            reason = w_res.get("outdoor_break_reason")
-            final_answer = (
-                f"I checked the current weather for **{loc}** using `get_weather`: it is currently {temp}°C with {cond}. "
-                f"**Outdoor study break suitability: {good.upper()}**. {reason} "
-                f"Remember to study in focused 25-minute Pomodoro blocks and step outside for fresh air when ready!"
-            )
-        else:
-            final_answer = (
-                f"I checked the weather using `get_weather` for '{loc}', but the weather service returned an error: "
-                f"{w_res.get('error', 'Location not found')}. I cannot determine outdoor conditions. Please share a valid city name!"
             )
         return final_answer, recorded_calls
 
